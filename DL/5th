@@ -1,0 +1,77 @@
+pip install tensorflow datasets matplotlib seaborn
+
+import tensorflow as tf
+from datasets import load_dataset
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import numpy as np
+
+# Load the SST-2 dataset
+dataset = load_dataset('glue', 'sst2')
+
+# Extract training and validation data
+train_sentences = dataset['train']['sentence']
+train_labels = dataset['train']['label']
+validation_sentences = dataset['validation']['sentence']
+validation_labels = dataset['validation']['label']
+
+# Initialize the tokenizer
+tokenizer = Tokenizer(num_words=10000, oov_token="<OOV>")
+tokenizer.fit_on_texts(train_sentences)
+
+# Convert texts to sequences
+train_sequences = tokenizer.texts_to_sequences(train_sentences)
+validation_sequences = tokenizer.texts_to_sequences(validation_sentences)
+
+# Pad the sequences
+max_length = 100
+train_padded = pad_sequences(train_sequences, maxlen=max_length, padding='post', truncating='post')
+validation_padded = pad_sequences(validation_sequences, maxlen=max_length, padding='post', truncating='post')
+
+# Convert labels to numpy arrays
+train_labels = np.array(train_labels)
+validation_labels = np.array(validation_labels)
+
+# Train the model
+history = model.fit(train_padded, train_labels, epochs=5, validation_data=(validation_padded, validation_labels))
+
+# Evaluate the model
+loss, accuracy = model.evaluate(validation_padded, validation_labels)
+print(f'Validation Loss: {loss}')
+print(f'Validation Accuracy: {accuracy}')
+
+# Sample sentences
+new_sentences = ["I absolutely loved this movie!", "The film was terrible and boring."]
+
+# Preprocess the sentences
+new_sequences = tokenizer.texts_to_sequences(new_sentences)
+new_padded = pad_sequences(new_sequences, maxlen=max_length, padding='post', truncating='post')
+
+# Predict sentiments
+predictions = model.predict(new_padded)
+
+# Display predictions
+for i, sentence in enumerate(new_sentences):
+    sentiment = "Positive" if predictions[i] > 0.5 else "Negative"
+    print(f"Sentence: {sentence}")
+    print(f"Predicted Sentiment: {sentiment}")
+
+import matplotlib.pyplot as plt
+
+# Plot accuracy
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Accuracy over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.show()
+
+# Plot loss
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Loss over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.show()
